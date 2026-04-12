@@ -1,0 +1,5 @@
+{
+  "name": "Esteganografía LSB",
+  "description": "Una aplicación web para ocultar y extraer mensajes secretos en imágenes usando bits menos significativos (LSB).",
+  "requestFramePermissions": []
+}
