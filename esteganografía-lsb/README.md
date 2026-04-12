@@ -1,20 +1,10 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# UmbraSteg
 
-# Run and deploy your AI Studio app
+Herramienta de esteganografía LSB (Least Significant Bit) con cifrado AES-GCM y compresión de datos. 
+Todo el procesamiento se realiza de forma local en el navegador del usuario mediante Web Workers.
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/af77182f-9936-4aff-a8cf-0154bbaec2e8
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Características
+* Cifrado AES-GCM (Web Crypto API)
+* Barajado pseudo-aleatorio de memoria eficiente (Lazy Shuffling)
+* Explorador de planos de bits y análisis de entropía
+* Sanitización de metadatos EXIF
