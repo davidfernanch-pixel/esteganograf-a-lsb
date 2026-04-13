@@ -326,7 +326,7 @@ export default function App() {
 
   // --- Manejadores de Eventos ---
 
-  const handleFileChange = (file: File | null) => {
+  const handleFileChange = async (file: File | null) => {
     if (!file) return;
     if (file.type !== 'image/png') {
       alert("¡Cuidado! Los formatos con pérdida como JPG pueden corromper el mensaje oculto. Se recomienda usar PNG.");
@@ -338,38 +338,42 @@ export default function App() {
     }
     setZoom(1);
     setPan({ x: 0, y: 0 });
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx) return;
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        originalImageDataRef.current = imageData;
-        currentImageDataRef.current = imageData;
-        
-        const currentTaskId = ++taskIdRef.current;
-        workerRef.current!.onmessage = (e) => {
-          if (e.data.taskId !== currentTaskId) return;
-          console.log(`✅ Tarea ${currentTaskId} (analyze) verificada correctamente.`);
-          if (e.data.type === 'entropy') setEntropyInfo(e.data.info);
-        };
-        workerRef.current!.postMessage({ taskId: currentTaskId, type: 'analyze', pixelData: imageData.data });
+
+    try {
+      const bitmap = await window.createImageBitmap(file, { colorSpaceConversion: 'none' });
+      const canvas = canvasRef.current;
+      if (!canvas) {
         setIsProcessing(false);
-      };
-      img.onerror = () => {
-        alert("Error: El archivo subido no es una imagen válida o está corrupto.");
+        return;
+      }
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) {
         setIsProcessing(false);
+        return;
+      }
+      
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(bitmap, 0, 0);
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      originalImageDataRef.current = imageData;
+      currentImageDataRef.current = imageData;
+      
+      const currentTaskId = ++taskIdRef.current;
+      workerRef.current!.onmessage = (e) => {
+        if (e.data.taskId !== currentTaskId) return;
+        console.log(`✅ Tarea ${currentTaskId} (analyze) verificada correctamente.`);
+        if (e.data.type === 'entropy') setEntropyInfo(e.data.info);
       };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+      workerRef.current!.postMessage({ taskId: currentTaskId, type: 'analyze', pixelData: imageData.data });
+      setIsProcessing(false);
+    } catch (error) {
+      console.error("Error al cargar la imagen:", error);
+      alert("Error: El archivo subido no es una imagen válida o está corrupto.");
+      setIsProcessing(false);
+    }
   };
 
   const handleEncode = async () => {
